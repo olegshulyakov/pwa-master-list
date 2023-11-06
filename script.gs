@@ -1,4 +1,5 @@
 const selectors = {
+  head: "html head",
   url: "head link[rel='canonical']",
   manifest: "head link[rel='manifest']",
   title: "head title",
@@ -27,13 +28,41 @@ function getContent_(url) {
   return contents;
 }
 
+function getHeader_(url) {
+  const cacheKey = "header::" + url;
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get(cacheKey);
+  if (cached != null) {
+    return cached;
+  }
+
+  const content = getContent_(url);
+  const $ = Cheerio.load(content);
+  const head = $(selectors.head).html();
+  cache.put(url, head, 30 * 60); // cache for 30 minutes
+  return head;
+}
+
+function getManifest_(url) {
+  const cacheKey = "manifest::" + url;
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get(cacheKey);
+  if (cached != null) {
+    return cached;
+  }
+
+  const content = getContent_(url);
+  cache.put(url, content, 30 * 60); // cache for 30 minutes
+  return head;
+}
+
 function GET_APP_INFO(url) {
   if (url === null || url === "") {
     return;
   }
 
-  const content = getContent_(url);
-  const $ = Cheerio.load(content);
+  const header = getHeader_(url);
+  const $ = Cheerio.load(header);
 
   const headerUrl = $(selectors.url).attr("href");
   const openGraphUrl = $(selectors.openGraph.url).attr("content");

@@ -17,10 +17,18 @@ const selectors = {
   },
 };
 
+/**
+* Checks if URL is absolut
+* @param url the url you want to check
+*/
 function isAbsolute_(url) {
   return url != null && (url.startsWith("http://") || url.startsWith("https://"));
 }
 
+/**
+* Fetch URL content
+* @param url the url you want to download
+*/
 function getContent_(url) {
   Logger.log("Fetching " + url);
   const result = UrlFetchApp.fetch(url);
@@ -28,6 +36,10 @@ function getContent_(url) {
   return contents;
 }
 
+/**
+* Fetch URL header
+* @param url
+*/
 function getHeader_(url) {
   const cacheKey = "header::" + url;
   const cache = CacheService.getScriptCache();
@@ -39,10 +51,18 @@ function getHeader_(url) {
   const content = getContent_(url);
   const $ = Cheerio.load(content);
   const head = $(selectors.head).html();
-  cache.put(url, head, 30 * 60); // cache for 30 minutes
+  try {
+    cache.put(url, head, 30 * 60); // cache for 30 minutes
+  } catch (e) {
+    Logger.log("Cannot cache header" + url, e);
+  }
   return head;
 }
 
+/**
+* Fetch URL manifest
+* @param url
+*/
 function getManifest_(url) {
   const cacheKey = "manifest::" + url;
   const cache = CacheService.getScriptCache();
@@ -52,14 +72,25 @@ function getManifest_(url) {
   }
 
   const content = getContent_(url);
-  cache.put(url, content, 30 * 60); // cache for 30 minutes
-  return head;
+  try {
+    cache.put(url, content, 30 * 60); // cache for 30 minutes
+  } catch (e) {
+    Logger.log("Cannot cache manifest" + url, e);
+  }
+  return content;
 }
 
+/**
+* Returns URL information
+* @param {"https://developer.mozilla.org/en-US/docs/Web/"} url the url you want to parse
+*/
 function GET_APP_INFO(url) {
   if (url === null || url === "") {
     return;
   }
+
+  const results = new Array(1);
+  const row = new Array(1);
 
   const header = getHeader_(url);
   const $ = Cheerio.load(header);
@@ -75,29 +106,32 @@ function GET_APP_INFO(url) {
   if (!manifestUrl || /^\s+$/.test(manifestUrl)) {
     return;
   }
-  
+
   if (!isAbsolute_(manifestUrl)) {
-    manifestUrl = canonicalUrl + manifestUrl;
+    manifestUrl = canonicalUrl + "/" + manifestUrl;
   }
 
-  const manifestRaw = getContent_(manifestUrl);
-  const manifest = JSON.parse(manifestRaw);
+  const manifestRaw = getManifest_(manifestUrl);
+  let manifest = "";
+  try {
+    manifest = JSON.parse(manifestRaw);
+  } catch (e) {
+    Logger.log("Cannot parse manifest" + url, e);
+  }
 
-  const name = $(selectors.openGraph.name).attr("content") 
-    || $(selectors.openGraph.title).attr("content") 
+  const name = $(selectors.openGraph.name).attr("content")
+    || $(selectors.openGraph.title).attr("content")
     || manifest["name"]
     || $(selectors.title).text();
-  const description = $(selectors.openGraph.description).attr("content") 
-    || manifest["description"] 
+  const description = $(selectors.openGraph.description).attr("content")
+    || manifest["description"]
     || $(selectors.description).attr("content");
-  let icon = $(selectors.openGraph.image).attr("content") 
-    || manifest["icons"]?.find((i) => (i.purpose === "any" || !i.purpose) && i.sizes === "192x192")?.src 
-    || manifest["icons"]?.find((i) => (i.purpose === "any" || !i.purpose) && i.sizes === "512x512")?.src 
+  let icon = $(selectors.openGraph.image).attr("content")
+    || manifest["icons"]?.find((i) => (i.purpose === "any" || !i.purpose) && i.sizes === "192x192")?.src
+    || manifest["icons"]?.find((i) => (i.purpose === "any" || !i.purpose) && i.sizes === "512x512")?.src
     || $(selectors.appleIcon).attr("href");
-  icon = icon != null ? isAbsolute_(icon) ? icon: canonicalUrl + icon : "";
-  
-  const results = new Array(1);
-  const row = new Array(1);
+  icon = icon != null ? isAbsolute_(icon) ? icon: canonicalUrl + "/" + icon : "";
+
   row[0] = name;
   row[1] = description;
   row[2] = Array.isArray(manifest["categories"]) ? manifest["categories"].join(",") : "";

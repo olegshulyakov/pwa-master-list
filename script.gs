@@ -114,6 +114,11 @@ function GET_APP_INFO(url) {
   const manifestRaw = getManifest_(manifestUrl);
   const manifest = JSON.parse(manifestRaw);
 
+  if (manifest["start_url"] == null) {
+    row[0] = "NOT INSTALLABLE";
+    return results;
+  }
+
   const name = manifest["short_name"]
     || manifest["name"]
     || $(selectors.openGraph.name).attr("content")
@@ -132,6 +137,7 @@ function GET_APP_INFO(url) {
   row[1] = description;
   row[2] = Array.isArray(manifest["categories"]) ? manifest["categories"].join(",") : "";
   row[3] = icon;
+  row[4] = manifest["start_url"] != null ? urlResolve(canonicalUrl, manifest["start_url"]) : ""
   results[0] = row;
   return results;
 }

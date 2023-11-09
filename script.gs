@@ -97,8 +97,8 @@ function GET_APP_INFO(url) {
 
   const headerUrl = $(selectors.url).attr("href");
   const openGraphUrl = $(selectors.openGraph.url).attr("content");
-  let canonicalUrl = (isAbsolute_(headerUrl) ? headerUrl : null) 
-  || (isAbsolute_(openGraphUrl) ? openGraphUrl : null)  
+  let canonicalUrl = (isAbsolute_(headerUrl) ? headerUrl : null)
+  || (isAbsolute_(openGraphUrl) ? openGraphUrl : null)
   || url;
   if (canonicalUrl.startsWith("http://")) {
     canonicalUrl = canonicalUrl.replace("http://", "https://");
@@ -110,7 +110,7 @@ function GET_APP_INFO(url) {
   }
 
   if (!isAbsolute_(manifestUrl)) {
-    manifestUrl = canonicalUrl + "/" + manifestUrl;
+    manifestUrl = urlResolve(canonicalUrl, manifestUrl);
   }
 
   const manifestRaw = getManifest_(manifestUrl);
@@ -132,7 +132,7 @@ function GET_APP_INFO(url) {
     || manifest["icons"]?.find((i) => (i.purpose === "any" || !i.purpose) && i.sizes === "192x192")?.src
     || manifest["icons"]?.find((i) => (i.purpose === "any" || !i.purpose) && i.sizes === "512x512")?.src
     || $(selectors.appleIcon).attr("href");
-  icon = icon != null ? isAbsolute_(icon) ? icon: canonicalUrl + "/" + icon : "";
+  icon = icon != null ? isAbsolute_(icon) ? icon: urlResolve(canonicalUrl, icon) : "";
 
   row[0] = name;
   row[1] = description;

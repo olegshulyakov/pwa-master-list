@@ -112,7 +112,7 @@ function GET_APP_INFO(url) {
   }
 
   const manifestRaw = getManifest_(manifestUrl);
-  let manifest = "";
+  let manifest = {};
   try {
     manifest = JSON.parse(manifestRaw);
   } catch (e) {

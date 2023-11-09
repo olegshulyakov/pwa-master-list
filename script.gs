@@ -52,7 +52,7 @@ function getHeader_(url) {
   const $ = Cheerio.load(content);
   const head = $(selectors.head).html();
   try {
-    cache.put(url, head, 30 * 60); // cache for 30 minutes
+    cache.put(url, head, 7 * 24 * 60 * 60); // cache for 7 days
   } catch (e) {
     Logger.log("Cannot cache header" + url, e);
   }
@@ -73,7 +73,7 @@ function getManifest_(url) {
 
   const content = getContent_(url);
   try {
-    cache.put(url, content, 30 * 60); // cache for 30 minutes
+    cache.put(url, content, 7 * 24 * 60 * 60); // cache for 7 days
   } catch (e) {
     Logger.log("Cannot cache manifest" + url, e);
   }

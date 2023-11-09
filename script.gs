@@ -41,6 +41,7 @@ function getContent_(url) {
 * @param url
 */
 function getHeader_(url) {
+  Logger.log("Get header " + url);
   const cacheKey = "header::" + url;
   const cache = CacheService.getScriptCache();
   const cached = cache.get(cacheKey);
@@ -51,7 +52,11 @@ function getHeader_(url) {
   let content = getContent_(url);
   const $ = Cheerio.load(content);
   content = $(selectors.head).html();
-  cache.put(url, content, 7 * 24 * 60 * 60); // cache for 7 days
+  try {
+    cache.put(url, content, 7 * 24 * 60 * 60); // cache for 7 days
+  } catch (e) {
+    Logger.log("Cannot cache header" + url, e);
+  }
   return content;
 }
 
@@ -60,6 +65,7 @@ function getHeader_(url) {
 * @param url
 */
 function getManifest_(url) {
+  Logger.log("Get manifest " + url);
   const cacheKey = "manifest::" + url;
   const cache = CacheService.getScriptCache();
   const cached = cache.get(cacheKey);
@@ -68,7 +74,11 @@ function getManifest_(url) {
   }
 
   const content = getContent_(url);
-  cache.put(url, content, 7 * 24 * 60 * 60); // cache for 7 days
+  try {
+    cache.put(url, content, 7 * 24 * 60 * 60); // cache for 7 days
+  } catch (e) {
+    Logger.log("Cannot cache manifest" + url, e);
+  }
   return content;
 }
 
@@ -85,6 +95,7 @@ function GET_APP_INFO(url) {
   row[3] = ""; // icon
 
   if (url === null || url === "") {
+    Logger.log("No url");
     row[0] = "NO URL";
     return results;
   }
@@ -103,6 +114,7 @@ function GET_APP_INFO(url) {
 
   let manifestUrl = $(selectors.manifest).attr("href");
   if (!manifestUrl || /^\s+$/.test(manifestUrl)) {
+    Logger.log("No manifest");
     row[0] = "NO MANIFEST";
     return results;
   }
@@ -115,6 +127,7 @@ function GET_APP_INFO(url) {
   const manifest = JSON.parse(manifestRaw);
 
   if (manifest["start_url"] == null) {
+    Logger.log("No start url");
     row[0] = "NOT INSTALLABLE";
     return results;
   }

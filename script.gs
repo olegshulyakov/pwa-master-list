@@ -41,7 +41,7 @@ function getContent_(url) {
 * @param url
 */
 function getHeader_(url) {
-  Logger.log("Get header " + url);
+Logger.log("Get header " + url);
   const cacheKey = "header::" + url;
   const cache = CacheService.getScriptCache();
   const cached = cache.get(cacheKey);
@@ -65,7 +65,7 @@ function getHeader_(url) {
 * @param url
 */
 function getManifest_(url) {
-  Logger.log("Get manifest " + url);
+Logger.log("Get manifest " + url);
   const cacheKey = "manifest::" + url;
   const cache = CacheService.getScriptCache();
   const cached = cache.get(cacheKey);
@@ -95,7 +95,7 @@ function GET_APP_INFO(url) {
   row[3] = ""; // icon
 
   if (url === null || url === "") {
-    Logger.log("No url");
+  Logger.log("No url");
     row[0] = "NO URL";
     return results;
   }
@@ -112,24 +112,21 @@ function GET_APP_INFO(url) {
     canonicalUrl = canonicalUrl.replace("http://", "https://");
   }
 
+  let manifest = {};
   let manifestUrl = $(selectors.manifest).attr("href");
-  if (!manifestUrl || /^\s+$/.test(manifestUrl)) {
+  if (manifestUrl != null && /\s+$/.test(manifestUrl)) {
+    if (!isAbsolute_(manifestUrl)) {
+      manifestUrl = urlResolve(canonicalUrl, manifestUrl);
+    }
+
+    const manifestRaw = getManifest_(manifestUrl);
+    manifest = JSON.parse(manifestRaw);
+
+    if (manifest["start_url"] == null) {
+      Logger.log("No start url");
+    }
+  } else {
     Logger.log("No manifest");
-    row[0] = "NO MANIFEST";
-    return results;
-  }
-
-  if (!isAbsolute_(manifestUrl)) {
-    manifestUrl = urlResolve(canonicalUrl, manifestUrl);
-  }
-
-  const manifestRaw = getManifest_(manifestUrl);
-  const manifest = JSON.parse(manifestRaw);
-
-  if (manifest["start_url"] == null) {
-    Logger.log("No start url");
-    row[0] = "NOT INSTALLABLE";
-    return results;
   }
 
   const name = manifest["short_name"]

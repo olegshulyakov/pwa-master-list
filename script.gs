@@ -31,7 +31,7 @@ function isAbsolute_(url) {
 */
 function getContent_(url) {
   Logger.log("Fetching " + url);
-  const result = UrlFetchApp.fetch(url);
+  const result = UrlFetchApp.fetch(url, {validateHttpsCertificates: false, muteHttpExceptions: true});
   const contents = result.getContentText();
   return contents;
 }

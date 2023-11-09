@@ -97,7 +97,9 @@ function GET_APP_INFO(url) {
 
   const headerUrl = $(selectors.url).attr("href");
   const openGraphUrl = $(selectors.openGraph.url).attr("content");
-  let canonicalUrl = headerUrl || openGraphUrl || url;
+  let canonicalUrl = (isAbsolute_(headerUrl) ? headerUrl : null) 
+  || (isAbsolute_(openGraphUrl) ? openGraphUrl : null)  
+  || url;
   if (canonicalUrl.startsWith("http://")) {
     canonicalUrl = canonicalUrl.replace("http://", "https://");
   }

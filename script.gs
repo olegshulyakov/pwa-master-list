@@ -51,12 +51,10 @@ Logger.log("Get header " + url);
 
   let content = getContent_(url);
   const $ = Cheerio.load(content);
+  $('script').remove();
+  $('style').remove();
   content = $(selectors.head).html();
-  try {
-    cache.put(cacheKey, content, 7 * 24 * 60 * 60); // cache for 7 days
-  } catch (e) {
-    Logger.log("Cannot cache header" + url, e);
-  }
+  cache.put(cacheKey, content, 7 * 24 * 60 * 60); // cache for 7 days
   return content;
 }
 
@@ -74,11 +72,7 @@ Logger.log("Get manifest " + url);
   }
 
   const content = getContent_(url);
-  try {
-    cache.put(cacheKey, content, 7 * 24 * 60 * 60); // cache for 7 days
-  } catch (e) {
-    Logger.log("Cannot cache manifest" + url, e);
-  }
+  cache.put(cacheKey, content, 7 * 24 * 60 * 60); // cache for 7 days
   return content;
 }
 
@@ -114,7 +108,7 @@ function GET_APP_INFO(url) {
 
   let manifest = {};
   let manifestUrl = $(selectors.manifest).attr("href");
-  if (manifestUrl != null && /\s+$/.test(manifestUrl)) {
+  if (manifestUrl != null && !/^\s+$/.test(manifestUrl)) {
     if (!isAbsolute_(manifestUrl)) {
       manifestUrl = urlResolve(canonicalUrl, manifestUrl);
     }

@@ -5,6 +5,7 @@ const selectors = {
   title: "head title",
   description: "head meta[name='description']",
   appleIcon: "head link[rel='apple-touch-icon']",
+  icon192: "head link[rel='icon'][sizes='192x192']",
   openGraph: {
     url: "head meta[property='og:url']",
     name: "head meta[property='og:site_name']",
@@ -138,6 +139,7 @@ function GET_APP_INFO(url) {
   let icon = manifest["icons"]?.find((i) => (i.purpose === "any" || !i.purpose) && i.sizes === "192x192")?.src
     || manifest["icons"]?.find((i) => (i.purpose === "any" || !i.purpose) && i.sizes === "512x512")?.src
     || $(selectors.appleIcon).attr("href")
+    || $(selectors.icon192).attr("href")
     || $(selectors.twitter.image).attr("content")
     || $(selectors.openGraph.image).attr("content");
   icon = icon != null ? isAbsolute_(icon) ? icon: urlResolve(canonicalUrl, icon) : "";
